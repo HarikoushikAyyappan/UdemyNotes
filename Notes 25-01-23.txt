@@ -1,0 +1,22 @@
+25/01/23
+
+Dependency Injection
+Generally when we need to call methods or state of a class ,we should create objects for it.
+
+Eg.We are desgining an app called car and we have an interface called Car and we have classes called Swift and
+Corolla which implements the interface .When instances are called ,it just prints some message corresponding to the instances called.
+
+If we print swift's message and then if we want to print corolla's message,we have to do runtime change in the code but this
+is not efficient.
+
+spring makes it easier with Component based programming.We have to create an instance of a java class called AnnotationConfigApplicationContext
+with a class say AppConfig specified in it like  AnnotationConfigApplicationContext context =  AnnotationConfigApplicationContext("AppConfig.class").
+
+We have to annotate the class AppConfig with @Configuration and @ComponentScan("PackageName").And WE have to create a single instance for
+Car class as Car myCar = context.getBean(Car.class)
+
+If we use @Component at the top of Swift class,when we print the message swift's message will be printed.If we use multiple
+@Component we should print it like specifying the type of Car instance as Car myCar = context.getBean("swift",Car.class).
+
+BYDefault The class is the name of the component but if we need to create a custom Component name we have to specify when
+using @Component("CustomName") and we should while getting the bean using context.
