@@ -1,0 +1,13 @@
+27/01/23
+Inversion of control:
+
+In order to utilise the functionalities of a class,we need objects.
+
+The Instance of an object is created using new keyword in java. But when we move onto pratical applications,
+using new keyword is not effective.
+
+So Spring makes the process easier using a concept called Inversion of Control where we give our control to spring for creating objects
+and we are injecting those objects created using Dependency Injection depending on our requirement.
+
+
+

@@ -1,0 +1,70 @@
+30/01/23
+
+AutoWiring:
+
+ It is also a method of doing Inversion of control.
+
+ When we annotate a class with @component,it is possible to create objects using that class without using new keyword.
+
+ If we need to fetch the objects of a class which is being annotated with @component ,we can just use Autowired annotation and
+ do the needful.
+
+ eg.   @Component
+       public class Engine(){
+       String type;
+       Engine(){
+       type=v8;
+       }
+       }
+
+       @Component
+       Public class Corolla extends Car(){
+       @Autowired
+       Engine engine;
+       System.out.println("Sedan from Toyota with engine"+engine);
+       }
+
+  AutoWire Annotation scenarios:
+
+  Autowire can be used at the top of a property of class which is of type of class(ie)ENgine engine) if there is no constructor
+  ie)Default constructor.
+
+  Autowire can be used at the top of setter if we have to set the property later on while coding.
+
+  Autowire can be used at the top of parameterized constructor also if we have to set the value of property at run time.
+
+  There is a option in autowire ie)@Autowired(Required=false) which makes the code efficient through which the objecs are created only
+  when there is  requirement or objects won't be created.But the thing it can be used only with the first and second scenario because
+  constructor always runs .If we give Autowired annotation with Required parameter in paramaterized constructor, we will get crashes.
+
+  @Qualifier Annotation :
+
+   If there are number of components say Engine Interface ,(V6engine ,v8engine.Both v6 and v8 extends Engine class.
+
+   We have to print the property of V6 engine by creating autowired annotation like @Autowired
+                                                                                    Engine engine;
+   at this time,ambiguity happens in fetching the correct property among v6 and v8.If we do like.
+                @Autowired
+                @Qualifier("v8")
+                Engine engine;
+       we can print the property of v8 engine.
+
+   Spring Bean:
+
+    While using @Component annotation, we will annotate all the classes for which we need the object to be created.
+
+    As the application moves a bite complex,the coding remains scattered.so we will bring everything under one umbrella using
+    @Bean annotation in Class which has been annoted with @Configuration and @ComponentScan like
+              @Bean("V8Engine")
+              pubic Corolla corolla(){
+              return corolla;
+              }
+
+           Public class Corolla extends Car(){
+                  @Autowired
+                  @Qualifier("V8Engine")
+                  Engine engine;
+                  System.out.println("Sedan from Toyota with engine"+engine);
+                  }
+
+
