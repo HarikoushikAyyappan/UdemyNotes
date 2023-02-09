@@ -1,0 +1,25 @@
+01/02/23
+Constructor Injection:
+       @Component
+       public class EngineType(){
+       String type;
+       EngineType(){
+       type="unknown";
+       }
+       EngineType(String type){
+              this.type=type;
+              }
+       }
+
+                     @Bean("EngineType")
+                     pubic Corolla corolla(){
+                     return new Corolla;
+                     }
+
+                  Public class Corolla extends Car(){
+                         @Autowired
+                         @Qualifier("engineType")
+                         EngineType engineType;
+                         System.out.println("Sedan from Toyota with engine"+engineType);
+                         }
+ In this way,we can get the bean runtime using constructor injection.

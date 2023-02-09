@@ -1,0 +1,120 @@
+07/02/23
+Spring Mvc:
+ Creating webproject:
+  We need to create maven project.
+  In pom.xml file we have to add the required dependencies such as dependencies needed for core spring,dependencies for servlet,
+   dependencies for rest,dependencies for web project and dependencies for spring mvc.
+
+  Next is the configuration of web.xml file. We will be naming servlet name and the servlet class ie.)Dispatcher servlet(which is
+  a default class provided by spring) .Next we have to give the servlet mapping.Servlet name should be same for doing servlet
+  mapping.Next we have to specify init param value which provides the location of xml file which consists of configurations of
+  component scan and view resolver (which helps to identify jsp files).
+
+  In an xml file which we defined in web.xml file,we have to provide configuration of component scan and view resolver.
+
+  Next part is to create Controller class.
+
+  Simple forms using Spring MVC:
+
+   We have to do the basic configuration stated above.
+
+   Then we have to code controller as,
+    @RequestMapping("displayname")
+    	public String displayName(HttpServletRequest request) {
+    		String firstName = request.getParameter("firstName");
+    		request.setAttribute("firstName", firstName);
+    		return "displayName";
+
+    DisplayName.jsp:
+
+     <%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+         pageEncoding="ISO-8859-1"%>
+     <!DOCTYPE html>
+     <html>
+     <head>
+     <meta charset="ISO-8859-1">
+     <title>Name view</title>
+     </head>
+     <body>
+     Hello <%= request.getAttribute("firstName") %>
+     </body>
+     </html>
+
+ RequestParam and Model under Spring MVC:
+
+ These both will give a spring way of coding as,
+
+    @RequestMapping("displayname")
+	public String displayName(@RequestParam("firstName") String firstName, Model model) {
+		model.addAttribute("name",firstName);
+		return "displayName";
+
+displayName.jsp:
+ <%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+     pageEncoding="ISO-8859-1"%>
+ <!DOCTYPE html>
+ <html>
+ <head>
+ <meta charset="ISO-8859-1">
+ <title>Name view</title>
+ </head>
+ <body>
+ Hello ${name}
+ </body>
+ </html>
+
+ ModelAndView And ForEach:
+
+ We can simply the method stated above as,
+
+ @Controller
+ public class MainController {
+
+ 	@RequestMapping(value = "/", method = RequestMethod.GET )
+ 	public String welcome() {
+ 		return "hello";
+ 	}
+
+ 	@GetMapping("displayname")
+ 	public ModelAndView displayName(@RequestParam("firstName") String firstName) {
+ 		ModelAndView modelAndView = new ModelAndView("displayName");
+ 		Date date = new Date();
+ 		List<String> names = new ArrayList<>();
+ 		names.add("Chaand");
+ 		names.add("Poonam");
+ 		names.add("John");
+ 		names.add("Mike");
+
+
+ 		modelAndView.addObject("date",date);
+ 		modelAndView.addObject("name",firstName);
+ 		modelAndView.addObject("team", names);
+ 		return modelAndView;
+ 	}
+
+ }
+displayName.jsp:
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+    pageEncoding="ISO-8859-1"%>
+<%@ taglib prefix = "c" uri = "http://java.sun.com/jsp/jstl/core" %>
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>Name view</title>
+</head>
+<body>
+Today is : ${date} <br/>
+Hello ${name} <br/>
+________________________<br/>
+List of team members
+
+<c:forEach var="temp" items="${team}">
+ <br/>${temp}
+</c:forEach>
+</body>
+</html>
+
+
+

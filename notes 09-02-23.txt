@@ -1,0 +1,138 @@
+09/02/23
+
+Spring form elements:
+
+ If we google on "spring form elements",we will get spring form tag library from the document of spring.io.we will have
+  various tags explained there.
+
+ And if we google on spring form taglib we will get useful information anout jsp tag lib and its configuration and few examples
+ related to that.
+
+Input and Radio button:
+
+@Controller
+public class MainController {
+
+	@GetMapping("/")
+	public ModelAndView home() {
+		ModelAndView modelAndView = new ModelAndView("userFormView");
+		User user = new User();
+		modelAndView.addObject("user",user);
+		return modelAndView;
+	}
+
+  We are adding a model class called User as atribute to the webpage.
+
+	@PostMapping("/displayUserInfo")
+	public ModelAndView displayUserInfo(@ModelAttribute User user) {
+		ModelAndView modelAndView = new ModelAndView("displayUserInfo");
+		System.out.println(user);
+		modelAndView.addObject("user",user);
+		return modelAndView;
+
+	}
+
+	USing @ModelAttribute annotation we extract the information of form filled (modelclass filled).
+
+UserFormView.jsp
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+	pageEncoding="ISO-8859-1"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>User form</title>
+</head>
+<body>
+<form:form action="displayUserInfo" modelAttribute="user">
+Name: <form:input path="name"/>
+<p/>
+Gender: Male: <form:radiobutton path="gender" value="male"/>
+        Female: <form:radiobutton path="gender" value="female"/>
+       <p/>
+       <input type="submit" value="Submit">
+
+  Input and radio buttons are given as form elements.
+
+DisplayUserInfo.jsp
+
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+    pageEncoding="ISO-8859-1"%>
+    <%@ taglib prefix = "c" uri = "http://java.sun.com/jsp/jstl/core" %>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>Userinfo</title>
+</head>
+<body>
+${user}
+</body>
+</html>
+
+RadioButtons and Background:
+
+Instead of doing radio as in above example ,we can define radio as Map and provide as attribute to the webPage.
+
+@Controller
+public class MainController {
+
+	@GetMapping("/")
+	public ModelAndView home() {
+		ModelAndView modelAndView = new ModelAndView("userFormView");
+		User user = new User();
+		Map<String,String> genderMap = new HashMap<String, String>();
+		genderMap.put("male", "Male");
+		genderMap.put("female", "Female");
+		modelAndView.addObject("genderMap",genderMap);
+		modelAndView.addObject("user",user);
+		return modelAndView;
+	}
+@PostMapping("/displayUserInfo")
+	public ModelAndView displayUserInfo(User user) {
+		ModelAndView modelAndView = new ModelAndView("displayUserInfo");
+		modelAndView.addObject("user",user);
+		return modelAndView;
+
+	}
+UserFormView.jsp:
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+	pageEncoding="ISO-8859-1"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>User form</title>
+</head>
+<body>
+<form:form action="displayUserInfo" modelAttribute="user">
+Name: <form:input path="name"/>
+<p/>
+Gender: <form:radiobuttons path="gender" items="${genderMap}"/>
+       <p/>
+       <input type="submit" value="Submit">
+
+
+</form:form>
+</body>
+</html>
+
+DisplayUserInfo.jsp
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+    pageEncoding="ISO-8859-1"%>
+    <%@ taglib prefix = "c" uri = "http://java.sun.com/jsp/jstl/core" %>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>User info</title>
+</head>
+<body>
+Name: ${user.name}<p/>
+Gender: ${user.gender}
+</body>
+</html>
