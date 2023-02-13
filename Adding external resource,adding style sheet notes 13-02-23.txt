@@ -1,0 +1,253 @@
+13/02/23
+
+Adding External resources
+
+Adding Sts 3 plugin support in eclipse we can make the process of creating schema in xml file easy ie)it helps tp configure ie)
+ spring beans and spring-context schema in xml file helps to do configuration easily
+
+If we want to add an external file like css file or web file from external sources we have to create a folder called template
+ inside Web-INF directory.
+
+We have to create the file in it .
+
+We must give mapping in spring servlet.xml file.
+
+The spring servlet.xml file is given by,
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xsi:schemaLocation="http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.3.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+	<!-- Adding Support for Component Scan -->
+	<context:component-scan
+		base-package="org.studyeasy" />
+
+	<!-- Configure View Resolver -->
+	<bean
+		class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="prefix" value="/view/" />
+		<property name="suffix" value=".jsp" />
+	</bean>
+
+	<mvc:annotation-driven></mvc:annotation-driven>
+	<mvc:resources location="/WEB-INF/template/" mapping="/files/**"></mvc:resources>
+
+
+</beans>
+
+And the web.xml file is givne by,
+
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/j2ee" xmlns:web="http://xmlns.jcp.org/xml/ns/javaee" xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd http://xmlns.jcp.org/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" id="WebApp_ID" version="2.4">
+  <servlet>
+    <servlet-name>SpringSample</servlet-name>
+    <servlet-class>
+         org.springframework.web.servlet.DispatcherServlet
+      </servlet-class>
+    <init-param>
+      <param-name>contextConfigLocation</param-name>
+      <param-value>/WEB-INF/SpringSample-servlet.xml</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>SpringSample</servlet-name>
+    <url-pattern>/</url-pattern>
+  </servlet-mapping>
+</web-app>
+
+
+We can add style sheet here by creating a folder inside css inside template and adding css file int it. The same way has to be
+followed if we want to add jsp scripts or java scripts.
+
+Style.css file is given,
+<!-- CSS credit : http://codepen.io/markmurray/pen/JsAhx/ -->
+
+@import "compass/css3";
+
+@import url(http://fonts.googleapis.com/css?family=Merriweather);
+$red: #e74c3c;
+
+*,
+*:before,
+*:after {
+   @include box-sizing(border-box);
+}
+
+html, body {
+  background: #f1f1f1;
+  font-family: 'Merriweather', sans-serif;
+  padding: 1em;
+}
+
+h1 {
+   text-align: center;
+   color: #a8a8a8;
+   @include text-shadow(1px 1px 0 rgba(white, 1));
+}
+
+form {
+   max-width: 600px;
+   text-align: center;
+   margin: 20px auto;
+
+  input, textarea {
+     border:0; outline:0;
+     padding: 1em;
+     @include border-radius(8px);
+     display: block;
+     width: 100%;
+     margin-top: 1em;
+     font-family: 'Merriweather', sans-serif;
+     @include box-shadow(0 1px 1px rgba(black, 0.1));
+     resize: none;
+
+    &:focus {
+       @include box-shadow(0 0px 2px rgba($red, 1)!important);
+    }
+  }
+
+  #input-submit {
+     color: white;
+     background: $red;
+     cursor: pointer;
+
+    &:hover {
+       @include box-shadow(0 1px 1px 1px rgba(#aaa, 0.6));
+    }
+  }
+
+  textarea {
+      height: 126px;
+  }
+}
+
+
+.half {
+  float: left;
+  width: 48%;
+  margin-bottom: 1em;
+}
+
+.right { width: 50%; }
+
+.left {
+     margin-right: 2%;
+}
+
+
+@media (max-width: 480px) {
+  .half {
+     width: 100%;
+     float: none;
+     margin-bottom: 0;
+  }
+}
+
+
+/* Clearfix */
+.cf:before,
+.cf:after {
+    content: " "; /* 1 */
+    display: table; /* 2 */
+}
+
+.cf:after {
+    clear: both;
+}
+
+DsiplayUserInfo.jsp
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+    pageEncoding="ISO-8859-1"%>
+    <%@ taglib prefix = "c" uri = "http://java.sun.com/jsp/jstl/core" %>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>User info</title>
+<link type="text/css" rel="stylesheet" href="${pageContext.request.contextPath}/files/css/style.css">
+</head>
+<body>
+Name: ${user.name}<p/>
+Gender: ${user.gender}<p/>
+Country: ${user.country}<p/>
+Introduction: ${user.introduction}<p/>
+Visited Countries:
+<ul>
+<c:forEach items="${user.visitedCountries}" var="item">
+<li>${item}</li>
+</c:forEach>
+</ul>
+</body>
+</html>
+
+UserFormView.jsp
+
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+	pageEncoding="ISO-8859-1"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>User form</title>
+<link type="text/css" rel="stylesheet" href="${pageContext.request.contextPath}/files/css/style.css">
+</head>
+<body>
+<h4>Submit your information</h4>
+<hr>
+	<form:form action="displayUserInfo" modelAttribute="user">
+Name: <form:input path="name" />
+		<p />
+Gender: <form:radiobuttons path="gender" items="${genderMap}" />
+		<p />
+
+Country: <form:select path="country" items="${countryMap}" />
+		<p />
+Introduction:
+        <form:textarea path="introduction" />
+		<p />
+Visited countries:
+        China: <form:checkbox path="visitedCountries" value="China" />
+        Taiwan:   <form:checkbox path="visitedCountries" value="Taiwan" />
+        Germany     <form:checkbox path="visitedCountries" value="Germany" />
+        Bhutan       <form:checkbox path="visitedCountries" value="Bhutan" />
+
+		<p />
+		<input type="submit" value="Submit">
+	</form:form>
+</body>
+</html>
+
+Spring-servlet.xml file is given by,
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xsi:schemaLocation="http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.3.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+	<!-- Adding Support for Component Scan -->
+	<context:component-scan
+		base-package="org.studyeasy" />
+
+	<!-- Configure View Resolver -->
+	<bean
+		class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="prefix" value="/view/" />
+		<property name="suffix" value=".jsp" />
+	</bean>
+
+	<mvc:annotation-driven></mvc:annotation-driven>
+	<mvc:resources location="/WEB-INF/template/" mapping="/files/**"></mvc:resources>
+
+
+</beans>
+
