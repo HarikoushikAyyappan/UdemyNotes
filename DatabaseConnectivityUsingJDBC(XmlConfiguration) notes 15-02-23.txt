@@ -1,0 +1,250 @@
+15/02/23
+
+DataBase connectivity using JDBC(XML Configuration)
+
+ Maven setup for Hibernate and MySQL:
+  We have to add Hibernate-core and MySQL Connector dependency in pom.xml.
+  Configure Tomcat.
+
+Understanding the Architecture:
+
+The Architecture consists of
+
+ FrontEnd <->Securitylayer->Controller <->ServiceLayer <-> DAO Layer <-> Database
+
+ The Security layer performs
+   1.Authentication-identifies and checks the user information
+   2.Authorization-identifies whether the coreesponding user is permitted to do the specific operation inside the application.
+
+
+ Controller is used to call the service layer and some  business logic can also be done inside it.
+
+ ServiceLayer is used to call Dao layer and Business operations and logic are performed in it.
+
+ DAO layer is used to extract data from database.
+
+ Say we have user details in a table which has userID ,personal details and Another table contains userId and Address.
+ So data from two tables is obtained in dao layer and fed to service layer.Service layer binds it and gives to the controller
+ as UserType.
+
+
+ There are two methods of mapping,
+  XML mapping
+  Annotation based Mapping
+
+An example is given by,
+
+Model:
+public class User {
+
+	private int userID;
+	private String name;
+	private String email;
+	public User(int userID, String name, String email) {
+		this.userID = userID;
+		this.name = name;
+		this.email = email;
+	}
+	public int getUserID() {
+		return userID;
+	}
+
+	public void setUserID(int userID) {
+		this.userID = userID;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
+
+	@Override
+	public String toString() {
+		return "User [userID=" + userID + ", name=" + name + ", email=" + email + "]";
+	}
+
+
+}
+
+Controller:
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.ModelAndView;
+import org.studyeasy.spring.DAO.AppDAOImpl;
+import org.studyeasy.spring.model.User;
+
+@Controller
+public class AppController {
+
+
+	@RequestMapping("/")
+	public ModelAndView homepage() {
+		ModelAndView model = new ModelAndView("index");
+		List<User> users = new ArrayList<User>();
+		ClassPathXmlApplicationContext context
+		= new ClassPathXmlApplicationContext("/org/studyeasy/spring/DAO/Spring-AppDAOConfig.xml");
+
+		AppDAOImpl DAO = context.getBean("DAOBean", AppDAOImpl.class);
+
+		users = DAO.listUsers();
+        model.addObject("users", users);
+		context.close();
+		return model;
+	}
+}
+
+Dao Interface:
+
+import java.util.List;
+
+import org.studyeasy.spring.model.User;
+
+public interface AppDAO {
+
+	public List<User> listUsers();
+}
+
+DaoImplementaion:
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.sql.DataSource;
+
+import org.studyeasy.spring.model.User;
+
+public class AppDAOImpl implements AppDAO {
+
+	private DataSource dataSource;
+
+	public AppDAOImpl(DataSource dataSource) {
+		this.dataSource = dataSource;
+	}
+
+	@Override
+	public List<User> listUsers() {
+		String SQL = "Select * from users";
+		List<User> listUsers = new ArrayList<User>();
+		Connection conn = null;
+		try{
+			conn = dataSource.getConnection();
+			PreparedStatement ps = conn.prepareStatement(SQL);
+			ResultSet rs =  ps.executeQuery();
+	        while(rs.next()){
+	        	User temp = new User(
+	        			rs.getInt("user_id"),
+	        			rs.getString("name"),
+	        			rs.getString("email")
+	        			);
+	        	listUsers.add(temp);
+	        }
+	     rs.close();
+	     ps.close();
+	     return listUsers;
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}finally{
+			if (conn != null) {
+				try {
+				conn.close();
+				} catch (SQLException e) {e.printStackTrace();}
+			}
+
+		}
+
+
+	}
+
+}
+
+Dao Config.xml
+
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<bean id="dataSource"
+		class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="com.mysql.jdbc.Driver" />
+		<property name="url" value="jdbc:mysql://localhost:3306/project" />
+		<property name="username" value="root" />
+		<property name="password" value="root" />
+	</bean>
+
+
+	<bean id="DAOBean" class="org.studyeasy.spring.DAO.AppDAOImpl">
+		<constructor-arg ref="dataSource" name="dataSource"></constructor-arg>
+	</bean>
+</beans>
+
+Here We are creating datasource bean from default java DrivermanageraDataSource class and we are injecting that bean into
+implementaion class AppDaoImpl.
+
+
+index.jsp
+
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+	pageEncoding="ISO-8859-1"%>
+<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<title>HomePage</title>
+<link rel="stylesheet" type="text/css"
+	href="${pageContext.request.contextPath}/files/css/style.css" />
+</head>
+<body>
+	<h4>Home Page : List of users in the project</h4>
+	<hr />
+	<table border="1" align="left">
+		<tr>
+			<th>User ID</th>
+			<th>Name</th>
+			<th>Email</th>
+		</tr>
+		<c:forEach items="${users}" var="user">
+			<tr>
+				<td>${user.userID} </td>
+				<td>${user.name} </td>
+				<td>${user.email} </td>
+			</tr>
+		</c:forEach>
+	</table>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
