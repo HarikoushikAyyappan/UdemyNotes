@@ -1,0 +1,328 @@
+16/02/23
+
+DatabaseConnectivity using JDBC(Annotation Based)
+
+Configuration and dependencies used are similar except the Xml configuration.
+
+The Same process is done using Annotations as follows,
+
+Controller:
+
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.validation.Valid;
+
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.ModelAndView;
+import org.studyeasy.spring.DAO.AppDAOImpl;
+import org.studyeasy.spring.config.AppConfig;
+import org.studyeasy.spring.model.User;
+
+@Controller
+public class AppController {
+
+	@RequestMapping("/")
+	public ModelAndView homepage() {
+		ModelAndView model = new ModelAndView("index");
+		List<User> users = new ArrayList<User>();
+		AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class);
+
+		AppDAOImpl DAO = context.getBean("DAOBean", AppDAOImpl.class);
+
+		users = DAO.listUsers();
+		model.addObject("users", users);
+		context.close();
+		return model;
+	}
+
+	@RequestMapping("/addUser")
+	public String addUser(Model model, @Valid User user, BindingResult result) {
+		if (result.hasErrors()) {
+			model.addAttribute("user", user);
+			return "addUser";
+		} else {
+			if (user.getName() != null && user.getEmail() != null) {
+
+				AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class);
+
+				AppDAOImpl DAO = context.getBean("DAOBean", AppDAOImpl.class);
+				DAO.addUser(user);
+				context.close();
+				return "forward:/";
+			} else {
+				System.out.println("loading form");
+				return "addUser";
+			}
+		}
+	}
+}
+
+Model:
+
+import org.hibernate.validator.constraints.Email;
+
+public class User {
+
+	private int userID;
+	private String name;
+	@Email
+	private String email;
+	public User(int userID, String name, String email) {
+		this.userID = userID;
+		this.name = name;
+		this.email = email;
+	}
+	public User() {
+
+	}
+	public int getUserID() {
+		return userID;
+	}
+
+	public void setUserID(int userID) {
+		this.userID = userID;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
+
+	@Override
+	public String toString() {
+		return "User [userID=" + userID + ", name=" + name + ", email=" + email + "]";
+	}
+
+
+}
+AppConfig.java
+
+import javax.sql.DataSource;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import org.studyeasy.spring.DAO.AppDAOImpl;
+
+@Configuration
+public class AppConfig {
+
+	@Bean
+	public DataSource getDataSource() {
+		DriverManagerDataSource dataSource = new DriverManagerDataSource();
+		dataSource.setDriverClassName("com.mysql.jdbc.Driver");
+		dataSource.setUrl("jdbc:mysql://localhost:3306/project?useSSL=false");
+		dataSource.setUsername("root");
+		dataSource.setPassword("root");
+
+		return dataSource;
+	}
+	@Bean(name="DAOBean")
+	public AppDAOImpl AppDAO(){
+		return new AppDAOImpl(getDataSource());
+	}
+}
+
+Dao:
+
+import java.util.List;
+
+import org.studyeasy.spring.model.User;
+
+public interface AppDAO {
+
+	public List<User> listUsers();
+
+	void addUser(User user);
+}
+
+Dao Impln:
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.sql.DataSource;
+
+import org.studyeasy.spring.model.User;
+
+public class AppDAOImpl implements AppDAO {
+
+	private DataSource dataSource;
+
+	public AppDAOImpl(DataSource dataSource) {
+		this.dataSource = dataSource;
+	}
+
+	@Override
+	public List<User> listUsers() {
+		String SQL = "Select * from users";
+		List<User> listUsers = new ArrayList<User>();
+		Connection conn = null;
+		try{
+			conn = dataSource.getConnection();
+			PreparedStatement ps = conn.prepareStatement(SQL);
+			ResultSet rs =  ps.executeQuery();
+	        while(rs.next()){
+	        	User temp = new User(
+	        			rs.getInt("user_id"),
+	        			rs.getString("name"),
+	        			rs.getString("email")
+	        			);
+	        	listUsers.add(temp);
+	        }
+	     rs.close();
+	     ps.close();
+	     return listUsers;
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}finally{
+			if (conn != null) {
+				try {
+				conn.close();
+				} catch (SQLException e) {e.printStackTrace();}
+			}
+
+		}
+
+
+	}
+@Override
+public void addUser(User user) {
+	String SQL =  "INSERT INTO users " +
+			"(name, email) VALUES (?, ?)";
+	Connection conn = null;
+	try{
+		conn = dataSource.getConnection();
+		PreparedStatement ps = conn.prepareStatement(SQL);
+		ps.setString(1, user.getName());
+		ps.setString(2, user.getEmail());
+		System.out.println(ps.execute());
+
+     ps.close();
+
+	} catch (SQLException e) {
+		e.printStackTrace();
+	}finally{
+		if (conn != null) {
+			try {
+			conn.close();
+			} catch (SQLException e) {e.printStackTrace();}
+		}
+
+	}
+}
+
+}
+
+addUser.jsp
+
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+    pageEncoding="ISO-8859-1"%>
+    <%@ taglib uri="http://www.springframework.org/tags/form" prefix="form"%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link rel="stylesheet" type="text/css"
+	href="${pageContext.request.contextPath}/files/css/style.css" />
+<title>Add User</title>
+</head>
+<body>
+<table>
+<form:form modelAttribute="user" action="addUser">
+
+<tr><td>Name : <form:input path="name"/>
+<form:errors path="name" cssStyle="color:red"></form:errors></td></tr>
+<tr><td>Email : <form:input path="email"/>
+<form:errors path="email" cssStyle="color:red"></form:errors></td></tr>
+<tr><td><input type="submit" value="Sumit"></td></tr>
+</form:form>
+</table>
+</body>
+</html>
+
+index.jsp
+
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+	pageEncoding="ISO-8859-1"%>
+<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<title>HomePage</title>
+<link rel="stylesheet" type="text/css"
+	href="${pageContext.request.contextPath}/files/css/style.css" />
+</head>
+<body>
+	<h4>Home Page : List of users in the project</h4>
+	<hr />
+	<a href="${pageContext.request.contextPath}/addUser">Add User</a>
+	<p/>
+	<table border="1" align="left">
+		<tr>
+			<th>User ID</th>
+			<th>Name</th>
+			<th>Email</th>
+		</tr>
+		<c:forEach items="${users}" var="user">
+			<tr>
+				<td>${user.userID} </td>
+				<td>${user.name} </td>
+				<td>${user.email} </td>
+			</tr>
+		</c:forEach>
+	</table>
+</body>
+</html>
+
+ExceptionHandling:
+
+ The exception occuring can be handled by creating a class like below,
+
+
+ import org.springframework.web.bind.annotation.ControllerAdvice;
+
+ @ControllerAdvice
+ public class ExceptionHandler {
+
+ 	@org.springframework.web.bind.annotation.ExceptionHandler(Exception.class)
+ 		public String exceptionHandler(Exception ex){
+ 			return "error";
+ 		}
+ }
+
+
+
+
+
+
+
+
+
+
